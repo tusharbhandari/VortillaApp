@@ -59,9 +59,9 @@ class JWTController extends Controller
             $person = Person::create([
                 'name' => $request->name
             ]);
-            
+
         } catch (\Throwable $th) {
-            
+
             DB::rollBack();
         }
         try {
@@ -71,17 +71,17 @@ class JWTController extends Controller
                 'password' => Hash::make($request->password)
             ]);
         } catch (\Throwable $th) {
-            
+
             DB::rollBack();
         }
-        
+
         try {
             $country = Country::firstOrCreate(
                 ['name' => $request->address['country']],
             );
             $state = State::firstOrCreate(
                 ['name' => $request->address['state']],
-                ['countries_id' => $country->id], 
+                ['countries_id' => $country->id],
             );
             $address = Address::create([
                 'name' => $request->address['name'],
@@ -95,7 +95,7 @@ class JWTController extends Controller
 
             $person->addreses()->attach($address->id,['active_form' => Carbon::now()]);
         } catch (\Throwable $th) {
-            
+
             DB::rollBack();
         }
 

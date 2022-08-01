@@ -7,45 +7,25 @@ use Closure;
 use Illuminate\Support\Str;
 
 
-class Authenticate extends Middleware
-{
+// use Closure;
 
-    
-    /**
-     * Get the path the user should be redirected to when they are not authenticated.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return string|null
-     */
-    protected function redirectTo($request)
-    {
-        //dd($request->expectsJson());
-        if (! $request->expectsJson()) {
-            return "Unauthorized";
-        }
-    }
+/** @deprecated */
+class Authenticate extends BaseMiddleware
+{
     /**
      * Handle an incoming request.
      *
      * @param  \Illuminate\Http\Request  $request
      * @param  \Closure  $next
-     * @param  string[]  ...$guards
      * @return mixed
      *
-     * @throws \Illuminate\Auth\AuthenticationException
+     * @throws \Symfony\Component\HttpKernel\Exception\UnauthorizedHttpException
      */
-    public function handle($request, Closure $next, ...$guards)
+    public function handle($request, Closure $next)
     {
-        $header = $request->header('Authorization', '');
-        
-            if (Str::startsWith($header, 'Bearer ')) {
-                $token = Str::substr($header, 7);
-            }else{
-            	return response()->json([
-                    "message" => "Unauthorize",
-                ], 401);
-            }
+        $this->authenticate($request);
 
         return $next($request);
     }
 }
+
