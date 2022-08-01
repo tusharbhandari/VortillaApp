@@ -44,14 +44,14 @@ class JWTController extends Controller
             'address.street1' => 'required|min:3|string',
             'address.street2' => 'min:3|string',
             'address.street3' => 'min:3|string',
-            'address.postcode' => 'integer',
-            'address.city' => 'string',
-            'address.state' => 'string',
-            'address.country' => 'string',
+            'address.postcode' => 'required|integer',
+            'address.city' => 'required|string',
+            'address.state' => 'required|string',
+            'address.country' => 'required|string',
         ]);
 
-        if($validator->fails()) {
-            return response()->json($validator->errors(), 400);
+        if ($validator->fails()) {
+            return $this->createValidationResponse($validator);
         }
 
         DB::beginTransaction();
@@ -61,8 +61,8 @@ class JWTController extends Controller
             ]);
 
         } catch (\Throwable $th) {
-
             DB::rollBack();
+            return $this->createErrorResponse($th->getMessage());
         }
         try {
             $login = Login::create([
@@ -73,6 +73,7 @@ class JWTController extends Controller
         } catch (\Throwable $th) {
 
             DB::rollBack();
+            return $this->createErrorResponse($th->getMessage());
         }
 
         try {
@@ -97,13 +98,12 @@ class JWTController extends Controller
         } catch (\Throwable $th) {
 
             DB::rollBack();
+            return $this->createErrorResponse($th->getMessage());
         }
 
         DB::commit();
 
-        return response()->json([
-            'message' => 'User successfully registered'
-        ], 201);
+        return $this->createSuccessResponse('User successfully registered',null,201);
     }
 
     /**
@@ -119,11 +119,12 @@ class JWTController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return response()->json($validator->errors(), 422);
+            return $this->createValidationResponse($validator);
         }
 
         if (!$token = auth()->attempt($validator->validated())) {
-            return response()->json(['error' => 'Invalid Credential'], 401);
+
+            return $this->createErrorResponse('Invalid Credential',null,401);
         }
 
         return $this->respondWithToken($token);
@@ -138,7 +139,7 @@ class JWTController extends Controller
     {
         auth()->logout();
 
-        return response()->json(['message' => 'User successfully logged out.']);
+        return $this->createSuccessResponse('User successfully logged out.');
     }
 
     /**
@@ -160,7 +161,7 @@ class JWTController extends Controller
     {
         $authUser = auth()->user();
         $person = Person::with('addreses')->where('id',$authUser->people_id)->get();
-        return response()->json($person);
+        return $this->createSuccessResponse('',$person);
     }
 
     /**
